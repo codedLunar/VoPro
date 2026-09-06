@@ -22,6 +22,14 @@
     color: white !important;
 }
 
+.vp-search-container {
+    background: var(--navbar-search-bg);
+}
+
+.vp-search-container:hover {
+    background: var(--navbar-search-bg) !important;
+}
+
 html, body {
     background: var(--background-gradient);
     overscroll-behavior: none;
@@ -38,7 +46,11 @@ html, body {
     background-color: var(--navbar-search-bg) !important;
 }
 
-.navbar *:hover {
+.navbar a:hover {
+    background: transparent ;
+}
+
+#logout-btn:hover {
     background: transparent ;
 }
 

@@ -4,9 +4,13 @@ let studio_data;
 let all_games;
 let games_active = []
 let games_number = []
+let group_search = []
 let certain_game_data;
+let certain_user_data;
 let active_ccu = 0;
 let config;
+
+let is_search_options = false;
 
 const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -33,6 +37,10 @@ async function get_game_data() {
   //console.log("GAME DATA: JSON received");
 }
 
+async function get_groupsearch_data(search) {
+  const response = await fetch(`https://playvortex.io/api/groups?q=${search}&sort=members&page=0`)
+  group_search = await response.json()
+}
 
 async function get_studio_data() {
   const response = await fetch("https://playvortex.io/api/studio-stats");
@@ -49,11 +57,606 @@ async function get_certain_game_data(game_id) {
   certain_game_data = await response.json();
 }
 
+async function get_certain_user_data(user_id) {
+  const response = await fetch(`https://playvortex.io/api/users/${user_id}`);
+  certain_game_data = await response.json();
+}
+
 const formatNumber = (num) =>
   new Intl.NumberFormat("en", {
     notation: "compact",
     maximumFractionDigits: 1,
   }).format(num);
+
+async function search() {
+
+  const template = document.createElement("template");
+
+  document.querySelector("#search-form").autocomplete = "off"
+
+  const vp_search_options_container = document.createElement("div")
+  vp_search_options_container.id = "vp-search-options-container"
+  vp_search_options_container.style.position = "absolute"
+
+  const vp_search_player_container = document.createElement("div")
+  vp_search_player_container.id = "vp-search-player-container"
+  vp_search_player_container.classList.add("vp-search-container")
+
+  Object.assign(vp_search_player_container.style, {
+    width: '455px',
+    height: '50px',
+    position: 'absolute',
+    top: '45px',
+    display: 'inherit',
+    cursor: 'pointer',
+  })
+
+  const vp_search_player_text = document.createElement("div")
+  vp_search_player_text.id = "vp-search-player-text"
+  vp_search_player_text.textContent = "Search in Players..."
+
+  Object.assign(vp_search_player_text.style, {
+    color: '#fff !important',
+    margin: '13px 0px 0 20px',
+    width: '100%'
+  })
+
+  const vp_search_games_container = document.createElement("div")
+  vp_search_games_container.id = 'vp-search-games-container'
+  vp_search_games_container.classList.add('vp-search-container')
+
+  Object.assign(vp_search_games_container.style, {
+    width: '455px',
+    height: '50px',
+    position: 'absolute',
+    top: '95px',
+    display: 'inherit',
+    color: '#8283ff !important',
+    margin: 'auto',
+    cursor: 'pointer'
+  })
+
+  const vp_search_games_text = document.createElement("div")
+  vp_search_games_text.id = "vp-search-games-text"
+  vp_search_games_text.textContent = 'Search in Games...'
+
+  Object.assign(vp_search_games_text.style, {
+    color: '#fff !important',
+    margin: '13px 20px',
+  })
+
+  const vp_search_groups_container = document.createElement("div")
+  vp_search_groups_container.id = 'vp-search-groups-container'
+  vp_search_groups_container.classList.add("vp-search-container")
+
+  Object.assign(vp_search_groups_container.style, {
+    width: '455px',
+    position: 'absolute',
+    top: '145px',
+    display: 'inherit',
+    color: '#8283ff !important',
+    margin: 'auto',
+    cursor: 'pointer'
+  })
+
+  const vp_search_groups_text = document.createElement("div")
+  vp_search_groups_text.id = "vp-search-groups-text"
+  vp_search_groups_text.textContent = "Search in Groups..."
+
+  Object.assign(vp_search_groups_text.style, {
+    color: '#fff !important',
+    margin: '13px 20px'
+  })
+
+
+  //<div style="color: #fff !important;margin: 13px 20px;" id="vp-search-groups-text">Search in Groups...</div></div><div></div></div>
+  //<div style="width: 455px;height: 50px;position: absolute;top: 145px;display: inherit;z-index: 100;color: #8283ff !important;margin: auto;cursor: pointer;" id="vp-search-groups-container" class="vp-search-container">
+  //<div style="color: #fff !important;margin: 13px 20px;" id="vp-search-games-text">Search in Games...</div></div>
+  //<div style="width: 455px;height: 50px;position: absolute;top: 95px;display: inherit;z-index: 100;color: #8283ff !important;margin: auto;cursor: pointer;" id="vp-search-games-container" class="vp-search-container">
+  //<div id="vp-search-player-text" style="color: #fff !important;margin: 13px 0px 0 20px;width: 100%;">Search in Players...</div>
+  //<div style="width: 455px;height: 50px;position: absolute;top: 45px;display: inherit;z-index: 100;cursor: pointer;" id="vp-search-player-container" class="vp-search-container">
+
+  document.querySelector("#search-form").append(vp_search_options_container)
+
+  vp_search_options_container.append(vp_search_player_container)
+  vp_search_options_container.append(vp_search_games_container)
+  vp_search_options_container.append(vp_search_groups_container)
+
+  vp_search_player_container.append(vp_search_player_text)
+  vp_search_games_container.append(vp_search_games_text)
+  vp_search_groups_container.append(vp_search_groups_text)
+
+  document.querySelector("#vp-search-options-container").style.display = "none";
+
+  document.querySelector("#vp-search-player-container").addEventListener("click", () => {
+    browser.runtime.sendMessage({
+      action: "redirect",
+      url: `${window.location.origin}/search?q=${encodeURIComponent(
+        document.querySelector("#search-input").value
+      )}`
+
+    });
+  })
+
+  document.querySelector("#vp-search-groups-container").addEventListener("click", () => {
+    browser.runtime.sendMessage({
+      action: "redirect",
+      url: `${window.location.origin}/search?vp_q_gr=${encodeURIComponent(
+        document.querySelector("#search-input").value
+      )}`
+
+    });
+  })
+
+  document.querySelector("#vp-search-games-container").addEventListener("click", () => {
+    browser.runtime.sendMessage({
+      action: "redirect",
+      url: `${window.location.origin}/search?vp_q_ga=${encodeURIComponent(
+        document.querySelector("#search-input").value
+      )}`
+
+    });
+  })
+
+  document.querySelector("#search-input").addEventListener("click", () => {
+    console.log("clicked lol")
+    document.querySelector("#vp-search-options-container").style.display = "block";
+  })
+
+  document.addEventListener('click', (event) => {
+    if (!document.querySelector("#search-input").contains(event.target)) {
+      document.querySelector("#vp-search-options-container").style.display = "none";
+    }
+  })
+
+  if (window.location.pathname.startsWith("/search")) {
+    // group search?
+    if (window.location.href.includes("/search?vp_q_gr")) {
+
+      console.log("wsg chat")
+
+      document.querySelector(".page").style.maxWidth = "1400px"
+
+      const searchquery = window.location.href.split("=")[1]
+
+      if (searchquery.trim()) {
+
+        await get_groupsearch_data(searchquery);
+
+        document.querySelector(".info-msg").remove()
+
+        const searchgrid = document.createElement("div")
+
+        searchgrid.id = "search_grid_group"
+        searchgrid.style.display = "grid";
+        searchgrid.style.gridTemplateColumns = "repeat(3, 1fr)"
+        searchgrid.style.gap = "0.875rem"
+
+        document.querySelector(".page").append(searchgrid)
+
+        group_search.items.forEach((element) => {
+
+          const grp_card = document.createElement("div")
+          grp_card.classList.add("grp-card")
+
+          Object.assign(grp_card.style, {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1.35rem',
+            minWidth: '0',
+            padding: '1.25rem',
+            background: '#171020',
+            border: '1px solid #24242f',
+            borderRadius: '14px',
+            transition: 'border-color 0.15s'
+          });
+
+          const grp_card_link = document.createElement("div")
+          grp_card_link.classList.add("grp-card-link")
+
+          grp_card_link.href = `/groups/${element.id}`
+
+          Object.assign(grp_card_link.style, {
+            display: 'flex',
+            gap: '1rem',
+            textDecoration: 'none',
+            color: 'inherit',
+            flex: '1',
+            minHeight: '0'
+          })
+
+          const grp_card_icon = document.createElement("img")
+          grp_card_icon.classList.add("grp-card-icon")
+          grp_card_icon.src = "/group-default.webp"
+          grp_card_icon.alt = "Vortex"
+
+          Object.assign(grp_card_icon.style, {
+            width: 'clamp(72px, 22%, 100px)',
+            aspectRatio: '1',
+            height: 'auto',
+            borderRadius: '10px',
+            objectFit: 'contain',
+            background: '#12121b',
+            flexShrink: '0'
+          })
+
+          const grp_card_text = document.createElement("span")
+          grp_card_text.classList.add("gpr-card-text")
+
+          Object.assign(grp_card_text.style, {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.3rem',
+            flex: '1',
+            minWidth: '0'
+          })
+
+          const grp_card_name = document.createElement("span");
+          grp_card_name.classList.add("grp-card-name")
+          grp_card_name.textContent = element.name
+
+          Object.assign(grp_card_name.style, {
+            fontWeight: '700',
+            fontSize: '1.125rem',
+            color: '#fff',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
+          })
+
+          const grp_card_desc = document.createElement("span");
+          grp_card_desc.classList.add("grp-card-desc")
+          grp_card_desc.textContent = element.description.length > 275 ? element.description.slice(0, 150) + "..." : element.description
+
+          Object.assign(grp_card_desc.style, {
+            fontSize: '0.875rem',
+            lineHeight: '1.45',
+            color: '#8a8a9c',
+            display: '-webkit-box',
+            overflow: 'hidden'
+          })
+
+          const grp_card_bottom = document.createElement("div")
+          grp_card_bottom.classList.add("grp-card-bottom")
+
+          Object.assign(grp_card_bottom.style, {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '0.75rem',
+            marginTop: 'auto'
+          })
+
+          const grp_card_meta = document.createElement("div")
+          grp_card_meta.classList.add("grp-card-meta")
+
+          Object.assign(grp_card_meta.style, {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.2rem',
+            minWidth: '0'
+          })
+
+          const grp_card_owner = document.createElement("a")
+          grp_card_owner.classList.add("grp-card-owner")
+          grp_card_owner.href = `/users/${element.owner_id}/profile`
+          grp_card_owner.textContent = element.owner_username
+
+          Object.assign(grp_card_owner.style, {
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.45rem',
+            maxWidth: '100%',
+            minWidth: '0',
+            fontSize: '0.9375rem',
+            fontWeight: '700',
+            color: '#a78bfa',
+            textDecoration: 'none'
+          })
+
+          const crown_icon = document.createElement("i")
+          crown_icon.classList.add('fa-solid')
+          crown_icon.classList.add('fa-crown')
+
+          const grp_card_members = document.createElement("span")
+          grp_card_members.classList.add("grp-card-members")
+          grp_card_members.textContent = element.member_count
+
+          Object.assign(grp_card_members.style, {
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            minWidth: '0',
+            fontSize: '0.875rem',
+            color: '#8a8a9c'
+          })
+
+          const members_icon = document.createElement("i")
+          members_icon.classList.add("fa-solid")
+          members_icon.classList.add("fa-user-group")
+
+          const grp_card_join = document.createElement("grp-card-join")
+          grp_card_join.classList.add("btn-primary")
+          grp_card_join.classList.add("grp-card-join")
+          grp_card_join.textContent = 'Join'
+
+          //<button type="button" class="btn-primary grp-card-join">Join</button>
+
+          //<span class="grp-card-members" style="display: inline-flex;align-items: center;gap: 0.5rem;min-width: 0;font-size: 0.875rem;color: #8a8a9c;">
+
+          //<a class="grp-card-owner" href="/users/${element.owner_id}/profile" style="display: inline-flex;align-items: center;gap: 0.45rem;max-width: 100%;min-width: 0;font-size: 0.9375rem;font-weight: 700;color: #a78bfa;text-decoration: none;">
+
+          //<div class="grp-card-meta" style="display: flex;flex-direction: column;gap: 0.2rem;min-width: 0;">
+
+          //<div class="grp-card-bottom" style="display: flex;align-items: center;justify-content: space-between;flex-wrap: wrap;gap: 0.75rem;margin-top: auto;">
+
+          //<span class="grp-card-desc" style="font-size: 0.875rem;line-height: 1.45;color: #8a8a9c;display: -webkit-box;-webkit-line-clamp: 2;line-clamp: 2;-webkit-box-orient: vertical;overflow: hidden;"></span>
+
+          //<span class="grp-card-name" style="font-weight: 700;font-size: 1.125rem;color: #fff;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;">${element.name}</span>
+
+          //<span class="grp-card-text" style="display: flex;flex-direction: column;gap: 0.3rem;flex: 1;min-width: 0;"
+
+          //<img class="grp-card-icon" src="/group-default.webp" alt="Vortex" style="width: clamp(72px, 22%, 100px);aspect-ratio: 1;height: auto;border-radius: 10px;object-fit: contain;background: #12121b;flex-shrink: 0;">
+
+          //<a class="grp-card-link" href="/groups/${element.id}" style="display: flex;gap: 1rem;text-decoration: none;color: inherit;flex: 1;min-height: 0;">
+
+          searchgrid.append(grp_card)
+
+          grp_card.append(grp_card_link)
+          grp_card_link.append(grp_card_icon)
+          grp_card_link.append(grp_card_text)
+          grp_card_text.append(grp_card_name)
+          grp_card_text.append(grp_card_desc)
+
+          grp_card.append(grp_card_bottom)
+          grp_card_bottom.append(grp_card_meta)
+
+          grp_card_meta.append(grp_card_owner)
+
+          grp_card_owner.prepend(crown_icon)
+
+          grp_card_meta.append(grp_card_members)
+
+          grp_card_members.prepend(members_icon)
+
+          grp_card_bottom.append(grp_card_join)
+
+        })
+      } else {
+        document.querySelector(".info-msg").textContent = "Search for a group above."
+      }
+    }
+    // game search?
+    if (window.location.href.includes("/search?vp_q_ga")) {
+
+      const searchgrid = document.createElement("div")
+
+      const searchquery = window.location.href.split("=")[1]
+
+      if (!searchquery) {
+        document.querySelector(".info-msg").textContent = "Search for a game above."
+      } else {
+        document.querySelector(".info-msg").remove()
+      }
+
+      document.querySelector(".page").style.maxWidth = "1400px"
+
+      searchgrid.id = "search_grid_game"
+      searchgrid.style.display = "grid";
+      searchgrid.style.gridTemplateColumns = "repeat(3, 1fr)"
+      searchgrid.style.gap = "0.875rem"
+
+      document.querySelector(".page").append(searchgrid)
+
+      await get_all_games();
+
+
+      const query = searchquery.toLowerCase().trim()
+
+      // we do NOT want to get each game with the get_certain_game_data function, or its going to be a guaranteed rate limit
+
+      all_games.forEach(async (element) => {
+
+        let match = false
+
+        const game_name_query = element.name.toLowerCase().trim()
+        if (game_name_query.includes(query)) {
+          match = true
+        }
+
+        if (match && searchquery) {
+
+          const grp_card = document.createElement("div")
+          grp_card.classList.add("grp-card")
+
+          Object.assign(grp_card.style, {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1.35rem',
+            background: '#171020',
+            border: '1px solid #24242f',
+            borderRadius: '14px',
+            padding: '1rem 0.75rem 0.875rem',
+            transition: 'border-color 0.15s'
+          })
+
+          const grp_card_link = document.createElement("a")
+          grp_card_link.classList.add("grp_card_link")
+
+          Object.assign(grp_card_link.style, {
+            display: 'flex',
+            gap: '1rem',
+            textDecoration: 'none',
+            color: 'inherit',
+            flex: '1',
+            minHeight: '0',
+            flexDirection: 'column'
+          })
+
+          const grp_card_icon = document.createElement("img")
+          grp_card_icon.classList.add("grp-card-icon")
+          grp_card_icon.alt = "Vortex"
+          grp_card_icon.src = `/assets/thumbnails/${element.id}`
+
+          Object.assign(grp_card_icon.style, {
+            aspectRatio: '1',
+            height: '200px',
+            borderRadius: '10px',
+            objectFit: 'contain',
+            flexShrink: '0',
+            width: '90%'
+          })
+
+          const grp_card_text = document.createElement("span")
+          grp_card_text.classList.add("grp-card-text")
+
+          Object.assign(grp_card_text.style, {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.3rem',
+            flex: '1',
+            minWidth: '0'
+          })
+
+          const grp_card_name = document.createElement("span")
+          grp_card_name.classList.add("grp-card-name")
+          grp_card_name.textContent = element.name
+
+          Object.assign(grp_card_name.style, {
+            fontWeight: '700',
+            fontSize: '1.125rem',
+            color: '#fff',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
+          })
+
+          const grp_card_desc = document.createElement("span")
+          grp_card_desc.classList.add("grp-card-desc")
+          grp_card_desc.textContent = element.description
+
+          Object.assign(grp_card_desc.style, {
+            fontSize: '0.875rem',
+            lineHeight: '1.45',
+            color: '#8a8a9c',
+            display: '-webkit-box',
+            overflow: 'hidden'
+          })
+
+          const grp_card_bottom = document.createElement("div")
+          grp_card_bottom.classList.add("grp-card-bottom")
+
+          Object.assign(grp_card_bottom.style, {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '0.75rem',
+            marginTop: 'auto'
+          })
+
+          const grp_card_meta = document.createElement("div")
+          grp_card_meta.classList.add("grp-card-meta")
+
+          Object.assign(grp_card_meta.style, {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.2rem',
+            minWidth: '0'
+          })
+
+          const grp_card_owner = document.createElement("a")
+          grp_card_owner.classList.add("grp-card-owner")
+          grp_card_owner.href = `/users/${element.creator_id}/profile`
+          grp_card_owner.textContent = element.creator_name
+
+          Object.assign(grp_card_owner.style, {
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.45rem',
+            maxWidth: '100%',
+            minWidth: '0',
+            fontSize: '0.9375rem',
+            fontWeight: '700',
+            color: '#a87bfa',
+            textDecoration: 'none'
+          })
+
+          const crown_icon = document.createElement("i")
+          crown_icon.classList.add("fa-solid")
+          crown_icon.classList.add("fa-crown")
+
+          const grp_card_members = document.createElement("span")
+          grp_card_members.classList.add("grp-card-members")
+          grp_card_members.textContent = element.player_count
+
+          Object.assign(grp_card_members.style, {
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            minWidth: '0',
+            fontSize: '0.875rem',
+            color: '#8a8a9c'
+          })
+
+          const members_icon = document.createElement("i")
+          members_icon.classList.add("fa-solid")
+          members_icon.classList.add("fa-user-group")
+
+          const page_link = document.createElement("a")
+          page_link.href= `/games/${element.id}`
+
+          const page_btn = document.createElement("button")
+          page_btn.classList.add("btn-primary")
+          page_btn.classList.add("grp-card-join")
+
+          page_btn.textContent = "Go to page";
+
+          searchgrid.append(grp_card)
+
+          grp_card.append(grp_card_link)
+
+          grp_card_link.append(grp_card_icon)
+          grp_card_link.append(grp_card_text)
+
+          grp_card_text.append(grp_card_name)
+          grp_card_text.append(grp_card_desc)
+
+          grp_card.append(grp_card_bottom)
+
+          grp_card_bottom.append(grp_card_meta)
+          grp_card_bottom.append(page_link)
+
+          page_link.append(page_btn)
+
+          grp_card_meta.append(grp_card_owner)
+
+          grp_card_owner.prepend(crown_icon)
+
+          grp_card_meta.append(grp_card_members)
+
+          grp_card_members.prepend(members_icon)
+
+          //<button type="button" class="btn-primary grp-card-join">Go to page</button>
+          //<i class="fa-solid fa-user-group"></i>
+          //<span class="grp-card-members" style="display: inline-flex;align-items: center;gap: 0.5rem;min-width: 0;font-size: 0.875rem;color: #8a8a9c;">
+          //<i class="fa-solid fa-crown"></i>
+          //<a class="grp-card-owner" href="/users/${element.creator_id}/profile" style="display: inline-flex;align-items: center;gap: 0.45rem;max-width: 100%;min-width: 0;font-size: 0.9375rem;font-weight: 700;color: #a78bfa;text-decoration: none;">
+          //<div class="grp-card-meta" style="display: flex;flex-direction: column;gap: 0.2rem;min-width: 0;">
+          //<div class="grp-card-bottom" style="display: flex;align-items: center;justify-content: space-between;flex-wrap: wrap;gap: 0.75rem;margin-top: auto;">
+          //<span class="grp-card-desc" style="font-size: 0.875rem;line-height: 1.45;color: #8a8a9c;display: -webkit-box;-webkit-line-clamp: 2;line-clamp: 2;-webkit-box-orient: vertical;overflow: hidden;">${element.description}</span>
+          //<span class="grp-card-name" style="font-weight: 700;font-size: 1.125rem;color: #fff;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;">${element.name}</span>
+          //<span class="grp-card-text" style="display: flex;flex-direction: column;gap: 0.3rem;flex: 1;min-width: 0;">
+          //<img class="grp-card-icon" alt="Vortex" style="aspect-ratio: 1;height: 200px;border-radius: 10px;object-fit: contain;/*! background: #12121b; */flex-shrink: 0;/*! height: auto; */width: 90%;" src="/assets/thumbnails/${element.id}">
+          //<a class="grp-card-link" style="display: flex;gap: 1rem;text-decoration: none;color: inherit;flex: 1;min-height: 0;flex-direction: column;">
+          //<div class="grp-card" style="display: flex;flex-direction: column;gap: 1.35rem;padding: 1.25rem;background: #171020;border: 1px solid #24242f;border-radius: 14px;transition: border-color 0.15s;">
+        }
+      })
+
+    }
+  }
+}
 
 async function navbar() {
 
@@ -246,49 +849,35 @@ async function main() {
       const game_number = href.split("/")[2]
       console.log("game number: ", game_number)*/
 
+      const status_icon_span = document.createElement("span");
+
       const status_txt = element.querySelector(".friend-status").textContent
       let status
       let offline = false
 
       if (status_txt == "In Game") {
         status = "in-game"
+        status_icon_span.style.background = '#16a34a'
       } else if (status_txt == "Online") {
         status = "online"
+        status_icon_span.style.background = '#2563eb'
       } else if (status_txt == "In Studio") {
         status = "in-studio"
+        status_icon_span.style.background = '#a78bfa'
       } else if (status_txt == "Offline") {
         status = "offline"
-        // custom
-        offline = true
-
-        const status_icon_span = document.createElement("span");
-
-        status_icon_span.classList.add("status-dot")
-        status_icon_span.classList.add("in-game")
-        status_icon_span.style.position = "relative"
-        status_icon_span.style.bottom = "53px"
-        status_icon_span.style.right = "-52px"
-        status_icon_span.style.width = "12px"
-        status_icon_span.style.height = "12px"
-        status_icon_span.style.background = "#5D5D5D"
-
-        element.append(status_icon_span)
+        status_icon_span.style.background = 'gray'
       }
 
-        if (offline == false) {
+      status_icon_span.classList.add("status-dot")
+      status_icon_span.classList.add("in")
+      status_icon_span.style.position = "relative"
+      status_icon_span.style.bottom = "53px"
+      status_icon_span.style.right = "-52px"
+      status_icon_span.style.width = "12px"
+      status_icon_span.style.height = "12px"
 
-          const status_icon_span = document.createElement("span");
-
-          status_icon_span.classList.add("status-dot")
-          status_icon_span.classList.add("in")
-          status_icon_span.style.position = "relative"
-          status_icon_span.style.bottom = "53px"
-          status_icon_span.style.right = "-52px"
-          status_icon_span.style.width = "12px"
-          status_icon_span.style.height = "12px"
-
-          element.append(status_icon_span)
-        }
+      element.append(status_icon_span)
 
 
     });
@@ -570,6 +1159,7 @@ async function init() {
     themes(config.theme)
     await navbar();
     await main();
+    await search()
     await games_page();
     await volts_page();
 

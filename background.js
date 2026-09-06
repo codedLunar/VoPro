@@ -34,6 +34,15 @@ browser.runtime.onMessage.addListener((message) => {
   }
 })
 
+browser.runtime.onMessage.addListener((message, sender) => {
+  if (message.action === "redirect" && sender.tab) {
+    browser.tabs.update(sender.tab.id, {
+      url: message.url
+    });
+  }
+});
+
+
 
 async function loadLocalConfig() {
   const storage = await browser.storage.local.get("userConfig");
