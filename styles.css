@@ -306,3 +306,7 @@ html, body {
 .volts-card .card-bg {
     filter: hue-rotate(var(--volts-deg))
 }
+
+.avatar-panel .fa-trash:hover {
+  color: #e74c3c !important;
+}

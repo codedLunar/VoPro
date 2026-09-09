@@ -1,6 +1,7 @@
 const logo = "*://playvortex.io/*logo.png*";
 const file = browser.runtime.getURL("images/vortexpluslogo.png");
 let config;
+let saved_avatars;
 
 browser.runtime.onInstalled.addListener((details) => {
   if (details.reason === "install") {
@@ -42,8 +43,6 @@ browser.runtime.onMessage.addListener((message, sender) => {
   }
 });
 
-
-
 async function loadLocalConfig() {
   const storage = await browser.storage.local.get("userConfig");
   const userOverrides = storage.userConfig || {};
@@ -60,27 +59,20 @@ async function loadLocalConfig() {
 
   console.log("config:", config)
   console.log("profile username:", config.profileusername)
-
-  //css
-
-  /*browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-    if (changeInfo.status === 'loading' && tab.url && tab.url.includes("playvortex.io")) {
-      if (config.mastertoggle == true) {
-        try {
-          await browser.scripting.unregisterContentScripts({ ids: ["css"] });
-        } catch (e) { }
-
-        await browser.scripting.insertCSS({
-                  target: { tabId: tabId },
-                  files: ["styles.css"],
-                  origin: "user"
-                });
-      } else {
-        try { await browser.scripting.unregisterContentScripts({ ids: ["css"] }); } catch (e) { }
-      }
-
-    }
-    })*/
 }
 
+async function loadSavedAvatars() {
+  const storage = await browser.storage.local.get("savedAvatars")
+  const userOverrides = storage.savedAvatars || {};
+
+  const defaults = {
+    "Voxel Hair": { shirt_id: 7, pant_id: null, body_type: "male", body_colors: ["#dc8add", "#7a6bd5", "#8f61e3", "#8f61e3", "#510cf4", "#510cf4"], face_id: 52, accessory_ids: [] }
+  }
+
+  saved_avatars = { ...defaults, ...userOverrides };
+}
+//"Voxel Hair": { shirt_id: 7, pant_id: null, body_type: "male", body_colors: ["#dc8add", "#7a6bd5", "#8f61e3", "#8f61e3", "#510cf4", "#510cf4"], face_id: 52, accessory_ids: [] }
+
 loadLocalConfig()
+
+loadSavedAvatars()

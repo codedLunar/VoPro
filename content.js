@@ -5,6 +5,7 @@ let all_games;
 let games_active = []
 let games_number = []
 let group_search = []
+let saved_avatars = []
 let certain_game_data;
 let certain_user_data;
 let active_ccu = 0;
@@ -59,7 +60,158 @@ async function get_certain_game_data(game_id) {
 
 async function get_certain_user_data(user_id) {
   const response = await fetch(`https://playvortex.io/api/users/${user_id}`);
-  certain_game_data = await response.json();
+  certain_user_data = await response.json();
+}
+
+async function getSavedAvatars() {
+  const { savedAvatars = {} } = await browser.storage.local.get("savedAvatars");
+
+  console.log('saved avatars: ', savedAvatars)
+  saved_avatars = savedAvatars
+
+}
+
+async function setSavedAvatars(savedAvatars) {
+
+  const { savedAvatars: current_saved_avatars = {} } = await browser.storage.local.get("savedAvatars");
+
+  const newSavedAvatars = { ...current_saved_avatars, ...savedAvatars }
+
+  await browser.storage.local.set({ savedAvatars: newSavedAvatars });
+}
+
+async function removeSavedAvatars(savedAvatarName) {
+  const { savedAvatars: current_saved_avatars = {} } = await browser.storage.local.get("savedAvatars");
+
+  delete current_saved_avatars[savedAvatarName]
+
+  await browser.storage.local.set({ savedAvatars: current_saved_avatars });
+}
+
+async function save_avatar(save_data) {
+
+  const url = "https://playvortex.io/api/clothing/outfit"
+
+  await fetch(url, {
+      method: 'PUT',
+      headers: {
+          'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(save_data)
+  })
+
+  .then(response => response.json())
+  .then(data => console.log('Avatar updated successfully:', data))
+  .catch(error => console.error('Error:', error));
+
+  return;
+}
+
+function get_current_avatar_data() {
+
+  let current_data = []
+
+  for (let element of document.querySelector("#market-grid").children) {
+
+    if (element.classList.contains('catalog-section-divider')) {
+      currentCategory = element.textContent.trim();
+      continue;
+    }
+
+    if (element.classList.contains('equipped')) {
+      current_data.push(`${currentCategory}/${element.querySelector("img").src.split("/")[6].trim()}`)
+    }
+
+    //console.log(`Item: ${element.querySelector(".item-name").textContent.trim()} | Category: ${currentCategory}`);
+
+
+    element.dataset.category = currentCategory;
+  }
+
+  let isShirt = Number(current_data[0].split("/")[1])
+  let isPants = Number(current_data[1].split("/")[1])
+
+  if (current_data[0].split("/")[0] != "Shirts" || current_data[1].split("/")[0] != "Pants") {
+    // was it no shirt that was true?
+    if (current_data[0].split("/")[0] != "Shirts") {
+      isShirt = null
+      isPants = Number(current_data[0].split("/")[1])
+    }
+
+    // was it no pants that was true?
+    if (current_data[1].split("/")[0] != "Pants") {
+      isPants = null
+    }
+  }
+
+  // now time for accessories :/
+
+  let accessories_data = []
+
+  const accessories = {
+    Hats: false,
+    Hair: false,
+    Face: false,
+    Neck: false,
+    Front: false,
+    Back: false,
+    Waist: false
+  }
+
+  for (let element of document.querySelector("#market-grid").children) {
+
+    if (element.classList.contains('catalog-section-divider')) {
+      currentCategory = element.textContent.trim();
+      continue;
+    }
+
+    const blacklistedCategories = ["Shirts", "Pants", "Faces"]
+
+    if (element.classList.contains('equipped') && !blacklistedCategories.includes(currentCategory)) {
+      accessories_data.push(`${currentCategory}/${element.querySelector("img").src.split("/")[6].trim()}`)
+
+      if (accessories[currentCategory.split(" ")[0]] != null) {
+        accessories[currentCategory.split(" ")[0]] = true
+      }
+    }
+
+
+    element.dataset.category = currentCategory;
+  }
+
+
+  const accessories_send = []
+
+  accessories_data.forEach((accessory) => {
+    accessories_send.push(Number(accessory.split("/")[1]))
+  })
+
+  function hexrgb(element_name) {
+    let r = Number(document.querySelector(`#${element_name}`).style.background.split(",")[0].slice(4))
+    let g = Number(document.querySelector(`#${element_name}`).style.background.split(",")[1].slice(1))
+    let b = Number(document.querySelector(`#${element_name}`).style.background.split(",")[2].slice(1, -1))
+    return "#" + [r, g, b].map(x => x.toString(16).padStart(2, "0")).join("");
+  }
+
+  const data = {
+    "shirt_id": isShirt,
+    "pant_id": isPants,
+    "body_type": document.querySelectorAll(".body-type-btn")[0].classList.contains("active") ? "male" : "female",
+    "body_colors": [
+      hexrgb("swatch-0"),
+      hexrgb("swatch-1"),
+      hexrgb("swatch-2"),
+      hexrgb("swatch-3"),
+      hexrgb("swatch-4"),
+      hexrgb("swatch-5")
+    ],
+    "face_id": Number(document.querySelector(".face-card.equipped").querySelector("img").src.split("/")[6]),
+    "accessory_ids": accessories_send
+  }
+
+  console.log("data", data)
+
+  return data
 }
 
 const formatNumber = (num) =>
@@ -700,7 +852,7 @@ async function navbar() {
     usertext.href = document.querySelector("#my-profile-btn").href;
     navbar.append(usertext);
 
-    //vortex+ vortex_plus_logo
+    await get_studio_data()
 
     if (config.vortex_plus_logo == true) {
       document.querySelector(".navbar-logo-img").src = browser.runtime.getURL("images/vortexpluslogo.png")
@@ -890,6 +1042,9 @@ async function games_page() {
     const gameid = window.location.pathname.split("/")[2];
 
     await get_certain_game_data(gameid)
+    await get_game_data()
+
+    document.querySelectorAll(".game-stat-value")[1].append(document.createElement("div").textContent = ` (${game_data[gameid].visits})`)
 
     let i = 0
     let s = 0
@@ -1137,6 +1292,120 @@ async function spoilers() {
   }
 }
 
+async function user_page() {
+
+  if (window.location.pathname.startsWith("/users/")) {
+    await get_certain_user_data(window.location.pathname.split("/")[2])
+
+    function formatDate(timestamp) {
+      const date = new Date(timestamp);
+
+      return date.toLocaleString("en-US", {
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      });
+    }
+
+    document.querySelectorAll(".join-date-value")[1].textContent = formatDate(certain_user_data.created_at)
+    document.querySelector(".profile-last-seen").append(document.createElement("div").textContent = ` (${formatDate(certain_user_data.last_seen)})`)
+  }
+}
+
+async function avatar_page() {
+
+  const saveavatarbtn = document.createElement("button")
+  saveavatarbtn.classList.add("btn-primary")
+  saveavatarbtn.textContent = "Save avatar as..."
+  saveavatarbtn.style.width = "100%"
+  saveavatarbtn.style.marginTop = "3px"
+
+  saveavatarbtn.addEventListener("click", async () => {
+
+    let userInput = prompt("(VoPro) Please enter the name you want to set the saved avatar as.");
+
+    if (userInput.trim() === "") {
+      alert("(VoPro) You need to enter a name for the saved avatar.")
+    } else {
+      await setSavedAvatars({ [userInput.trim()]: get_current_avatar_data() })
+      await save_avatar(get_current_avatar_data())
+      window.location.reload()
+    }
+  })
+
+  const savedavatarstxt = document.createElement("div")
+  savedavatarstxt.style.margin = "10px 0 10px"
+  savedavatarstxt.style.textAlign = "center"
+  savedavatarstxt.textContent = "Saved Avatars"
+
+  const savedAvatarsContainer = document.createElement("div")
+
+  savedAvatarsContainer.style.display = 'grid'
+  savedAvatarsContainer.style.gridTemplateColumns = 'repeat(2, minmax(50%, 1fr))'
+  savedAvatarsContainer.style.rowGap = '7px'
+
+  document.querySelector(".avatar-panel").append(saveavatarbtn)
+  document.querySelector(".avatar-panel").append(savedavatarstxt)
+  document.querySelector(".avatar-panel").append(savedAvatarsContainer)
+
+  if (window.location.pathname == "/catalog") {
+
+    await getSavedAvatars()
+
+    for (const [name, data] of Object.entries(saved_avatars)) {
+      console.log(`Name: ${name}`);
+      console.log("-----------------");
+
+      const avatarbtn = document.createElement("button")
+      avatarbtn.classList.add("btn-primary")
+      avatarbtn.textContent = name
+      avatarbtn.style.width = "90%"
+      avatarbtn.style.position = 'relative'
+
+      avatarbtn.addEventListener("click", async () => {
+        await save_avatar(data)
+        window.location.reload()
+      })
+
+      const trash_icon = document.createElement("i")
+      trash_icon.classList.add("fa-solid")
+      trash_icon.classList.add("fa-trash")
+
+      trash_icon.style.position = "absolute"
+      trash_icon.style.right = "5px"
+
+      trash_icon.style.display = "none"
+
+      trash_icon.addEventListener("mouseenter", () => {
+        trash_icon.style.color = "#e74c3c !important"
+      })
+
+      trash_icon.addEventListener("mouseleave", () => {
+        trash_icon.style.color = "white !important"
+      })
+
+      trash_icon.addEventListener("click", () => {
+        removeSavedAvatars(name)
+      })
+
+      avatarbtn.append(trash_icon)
+
+      avatarbtn.addEventListener("mouseenter", () => {
+        trash_icon.style.display = 'inline-block'
+      })
+
+      avatarbtn.addEventListener("mouseleave", () => {
+        trash_icon.style.display = 'none'
+      })
+
+
+      savedAvatarsContainer.append(avatarbtn)
+    }
+  }
+
+}
+
 /*const observer = new MutationObserver(() => {
   setTimeout(() => { document.querySelector(".settings-main-panel").style.filter = "opacity(0)" }, 50)
   spoilers()
@@ -1157,11 +1426,16 @@ async function init() {
         link.href = browser.runtime.getURL("styles.css");
         document.head.appendChild(link);
     themes(config.theme)
-    await navbar();
-    await main();
-    await search()
-    await games_page();
-    await volts_page();
+    navbar();
+    main();
+    search();
+    games_page();
+    avatar_page();
+    user_page();
+    volts_page();
+    getSavedAvatars()
+
+    //setSavedAvatars({"Voxel Hair": { shirt_id: 7, pant_id: null, body_type: "male", body_colors: ["#dc8add", "#7a6bd5", "#8f61e3", "#8f61e3", "#510cf4", "#510cf4"], face_id: 52, accessory_ids: [] }})
 
     if (config.streamer_mode) {
       document.querySelectorAll(".sidebar-tab").forEach((element) => {

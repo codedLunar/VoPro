@@ -39,7 +39,7 @@ n1.addEventListener("click", () => {
 
       setTimeout(() => {
         m2.style.display = "inline";
-        changetop("233");
+        changetop("245");
         setTimeout(() => {
           m2.classList.remove("transition-0");
         }, 500);
@@ -58,7 +58,7 @@ n2.addEventListener("click", () => {
 
       setTimeout(() => {
         m3.style.display = "inline"
-        changetop("153")
+        changetop("170")
         setTimeout(() => {
           m3.classList.remove("transition-0");
         }, 500);
@@ -78,7 +78,7 @@ n3.addEventListener("click", () => {
 
     setTimeout(() => {
       m4.style.display = "inline"
-      changetop("353")
+      changetop("370")
       setTimeout(() => {
         m4.classList.remove("transition-0");
 
@@ -99,7 +99,7 @@ n4.addEventListener("click", () => {
 
     setTimeout(() => {
       m5.style.display = "inline"
-      changetop("143")
+      changetop("155")
       setTimeout(() => {
         m5.classList.remove("transition-0");
         confetti({
