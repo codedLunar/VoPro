@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Vortex+",
+  "name": "VoPro",
   "version": "1.0",
-  "description": "Vortex+ is a browser extension for playvortex.io that adds a ton of new features! Such as stats, themes, streamer mode and more!",
+  "description": "VoPro is a browser extension for playvortex.io that adds a ton of new features! Such as stats, themes, streamer mode and more!",
   "content_scripts": [
     {
       "matches": ["https://playvortex.io/*"],
@@ -10,17 +10,7 @@
     }
   ],
   "icons": {
-    "128": "icons/vortexplustransparent.png"
-  },
-  "browser_specific_settings": {
-    "gecko": {
-      "id": "@vortexplus-codedlunar",
-      "data_collection_permissions": {
-        "required": [
-          "none"
-        ]
-      }
-    }
+    "128": "icons/voproicontransparent.png"
   },
 
   "permissions": [
@@ -38,7 +28,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["images/vortexpluslogo.png","config.js","styles.css"],
+      "resources": ["images/voprologo.png","icons/voproicontransparent.png","config.js","styles.css"],
       "matches": ["*://playvortex.io/*", "*://*.playvortex.io/*"]
     }
   ],

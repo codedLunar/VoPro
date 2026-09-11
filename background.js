@@ -1,5 +1,4 @@
 const logo = "*://playvortex.io/*logo.png*";
-const file = browser.runtime.getURL("images/vortexpluslogo.png");
 let config;
 let saved_avatars;
 

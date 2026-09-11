@@ -855,7 +855,7 @@ async function navbar() {
     await get_studio_data()
 
     if (config.vortex_plus_logo == true) {
-      document.querySelector(".navbar-logo-img").src = browser.runtime.getURL("images/vortexpluslogo.png")
+      document.querySelector(".navbar-logo-img").src = browser.runtime.getURL("images/voprologo.png")
     }
   }
 
