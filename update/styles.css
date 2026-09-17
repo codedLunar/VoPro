@@ -1,22 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
 
-:root {
-    --background-gradient: linear-gradient(180deg,#3a00ad #4046e7);
-}
-
 body {
   padding: 25px;
 }
 
-html {
-    background: linear-gradient(180deg,#3a00ad, #4046e7);
+html, body {
+  background: linear-gradient(180deg,#3a00ad, #4046e7);;
 }
 
 h1 {
     font-size: 2.5rem;
 }
 
-p {
+p, a {
     font-size: 1.1rem;
 }
 
@@ -31,6 +27,36 @@ p {
   min-height: 800px;
   height: 100vh;
   width: 100%;
+
+  opacity: 0;
+
+  transition: opacity 0.5s;
+
+  animation: fadeIn 0.5s ease forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+#title {
+    width: 100%;
+    text-align: center;
+    font-weight: bold;
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+
+    transform: translate(-50%, -50%);
+
+    margin-top: 300px;
 }
 
 #progress-bar {
@@ -46,7 +72,7 @@ p {
 
     transform: translate(-50%, -50%);
 
-    margin-top: 222px;
+    margin-top: 271px;
 
     transition: 0.5s margin-top;
 }
@@ -70,6 +96,7 @@ p {
 
     animation: rainbowBg 0.5s ease-in-out infinite;
 }
+
 
 .disabled {
     cursor: not-allowed !important;
@@ -136,84 +163,14 @@ p {
   background-color: #00159b;
 }
 
-@keyframes moveLeft {
-  0% {
-    left: 0%;
-    opacity: 0;
-  }
-
-  100% {
-    left: 50%;
-    opacity: 1;
-  }
+#links-container {
+  margin-bottom: 10px;
 }
 
-@keyframes moveRight {
-  0% {
-    left: 50%;
-    opacity: 1;
-  }
-
-  100% {
-    left: 100%;
-    opacity: 0;
-  }
+#links-container a {
+  color: #80b1fc;
 }
 
-
-.transition-1 {
-  animation: moveRight 0.50s ease-in-out 1;
-}
-
-.transition-0 {
-  animation: moveLeft 0.50s ease-in-out 1;
-}
-
-#m-2 {
-  display: none;
-}
-
-#m-3 {
-  display: none;
-}
-
-#m-4 {
-  display: none;
-}
-
-#m-5 {
-    display: none;
-}
-
-.social {
-  width: 35%;
-
-  height: 50px;
-
-  border: none;
-  border-radius: 5px;
-
-  cursor: pointer;
-
-  transition: 0.15s background-color;
-}
-
-.dc {
-  background-color: #5561ea;
-
-  transition: 0.15s background-color;
-}
-
-.dc:hover {
-  background-color: #606bea;
-}
-
-.gh {
-  background-color: #000909;
-
-  transition: 0.15s background-color;
-}
-
-.gh:hover {
-  background-color: #001919;
+#n-1 {
+    font-size: 1.3rem;
 }

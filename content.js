@@ -835,7 +835,7 @@ async function navbar() {
     })
     // each letter adds 11 pixels to the margin to make sure every username is spaced correctly
 
-    document.querySelector("#my-profile-btn").style.marginRight = `${margin_right}px`
+    document.querySelector("#my-profile").style.marginRight = `${margin_right}px`
 
     const usertext = document.createElement("a");
     usertext.style.fontSize = "1.2rem";
@@ -849,7 +849,7 @@ async function navbar() {
     usertext.id = "nav-profile-text"
     usertext.textContent = username;
 
-    usertext.href = document.querySelector("#my-profile-btn").href;
+    usertext.href = document.querySelector("#my-profile").href;
     navbar.append(usertext);
 
     await get_studio_data()
@@ -951,7 +951,7 @@ async function main() {
       }
     })
 
-    const home_intro_body = document.querySelector(".home-intro-body")
+    const home_intro_body = document.querySelector(".home-intro-text")
 
     const most_popular_game_link = document.createElement("a");
 
