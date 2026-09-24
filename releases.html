@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>VoPro setup!</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
+:root {
+    --background-gradient: linear-gradient(180deg,#3a00ad #4046e7);
+}
+
+body {
+  padding: 25px;
+}
+
+html {
+    background: linear-gradient(180deg,#3a00ad, #4046e7);
+}
+
+h1 {
+    font-size: 2.5rem;
+}
+
+p {
+    font-size: 1.1rem;
+}
+
+* {
+    color: white;
+    font-family: Roboto;
+    text-align: center;
+}
+
+.main {
+  position: relative;
+  min-height: 800px;
+  height: 100vh;
+  width: 100%;
+}
+
+#progress-bar {
+    width: 660px;
+    height: 15px;
+    background-color: #333;
+
+    border-radius: 15px;
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+
+    transform: translate(-50%, -50%);
+
+    margin-top: 222px;
+
+    transition: 0.5s margin-top;
+}
+
+#meter {
+    position: absolute;
+    top: 74%;
+    left: 0%;
+
+    transform: translate(0%, -74%);
+
+    border-radius: 15px;
+
+    padding-right: 0px;
+
+    width: 0px;
+    height: 15px;
+    background: linear-gradient(50deg, #7c3aed,  #8283ff);
+
+    transition: 1.3s padding-right;
+
+    animation: rainbowBg 0.5s ease-in-out infinite;
+}
+
+.disabled {
+    cursor: not-allowed !important;
+    color: #333;
+}
+
+/*.bar {
+    position: absolute;
+      top: -10%;
+      width: 5px;
+      height: 20px;
+      background: linear-gradient(180deg, #ff70fd, #d414d1);
+      z-index: 15;
+      border-radius: 5px;
+}
+
+#bar-0 {
+    left: 0%;
+}
+
+#bar-1 {
+    left: 32.7%
+}
+
+#bar-2 {
+    left: 66.3%
+}
+
+#bar-3 {
+    left: 99.3%
+}
+*/
+
+.page {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+
+  padding: 30px;
+  border-radius: 5px;
+
+  background: linear-gradient(270deg, #5c00fb, #7c3aed);
+
+  transform: translate(-50%, -50%);
+
+  width: 600px;
+}
+
+.next {
+    background-color: #000e6d;
+
+    width: 70%;
+    height: 50px;
+
+    border: none;
+    border-radius: 5px;
+
+    cursor: pointer;
+
+    transition: 0.15s background-color;
+}
+
+.next:hover {
+  background-color: #00159b;
+}
+
+@keyframes moveLeft {
+  0% {
+    left: 0%;
+    opacity: 0;
+  }
+
+  100% {
+    left: 50%;
+    opacity: 1;
+  }
+}
+
+@keyframes moveRight {
+  0% {
+    left: 50%;
+    opacity: 1;
+  }
+
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+
+.transition-1 {
+  animation: moveRight 0.50s ease-in-out 1;
+}
+
+.transition-0 {
+  animation: moveLeft 0.50s ease-in-out 1;
+}
+
+#m-2 {
+  display: none;
+}
+
+#m-3 {
+  display: none;
+}
+
+#m-4 {
+  display: none;
+}
+
+#m-5 {
+    display: none;
+}
+
+.social {
+  width: 35%;
+
+  height: 50px;
+
+  border: none;
+  border-radius: 5px;
+
+  cursor: pointer;
+
+  transition: 0.15s background-color;
+}
+
+.dc {
+  background-color: #5561ea;
+
+  transition: 0.15s background-color;
+}
+
+.dc:hover {
+  background-color: #606bea;
+}
+
+.gh {
+  background-color: #000909;
+
+  transition: 0.15s background-color;
+}
+
+.gh:hover {
+  background-color: #001919;
+}
+
+    </style>
+  </head>
+  <body>
+
+      <main class="main">
+        <div id="m-1" class="page">
+          <h1>VoPro Releases Page!</h1>
+          <p id="version">Version LOADING... is the latest version!</p>
+          <h2 id="detect">We've detected that you are on LOADING...</h2>
+          <p style="margin-bottom: 3px;" id="wrong">Were we wrong? Manually choose a browser version here:</h2>
+          <div id="links-container">
+            <a href="#c" class="link">Chrome/Chromium</a> &bull;
+            <a href="#f" class="link">Firefox/Gecko</a> &bull;
+            <p id="w" style="text-decoration: underline; cursor: pointer; display: inline; color: #80b1fc;">Safari/Webkit</p>
+            <div id="defaultbulletpoint" style="display: inline; display: none;"> &bull; </div>
+          </div>
+          <p>Please join the <a href="https://discord.gg/wxVgBeX8d9">discord server</a> if you need any help with installation!</p>
+          <button id="n-1" class="next">Download Release</button>
+        </div>
+
+        <div id="progress">
+            <div id="progress-bar">
+                <div id="meter"></div>
+            </div>
+            <div id="title"></div>
+        </div>
+      </main>
+
+      <script>
+        let zipResponseClone;
+let percent = 0;
+
+const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+function updateProgress(progress) {
+    const meter = document.querySelector("#meter");
+    meter.style.paddingRight = `${(progress * 661) / 100}px`;
+}
+
+function getBrowserFamily() {
+  const ua = navigator.userAgent;
+
+  if (/Firefox\/|FxiOS\//i.test(ua)) {
+    return "Firefox/Firefox based";
+  }
+
+  if (/Chrome\/|CriOS\/|Chromium\/|Edg\/|EdgA\/|EdgiOS\/|OPR\/|Brave/i.test(ua)) {
+    return "Chrome/Chromium based";
+  }
+
+  if (/AppleWebKit\//i.test(ua)) {
+    return "Safari/Webkit based";
+  }
+
+  return "Unknown";
+}
+
+console.log(getBrowserFamily());
+
+document.querySelectorAll(".link").forEach((link) => {
+  link.addEventListener("click", async () => {
+    await wait(100)
+    window.location.reload();
+  })
+})
+
+document.querySelector("#detect").textContent = `We detected that you are using a ${getBrowserFamily()} browser.`
+let browser = getBrowserFamily() === 'Firefox/Firefox based' ? "firefox" : getBrowserFamily() === 'Chrome/Chromium based' ? "chromium" : getBrowserFamily() === "Safari/Webkit based" ? "safari" : "unknown";
+
+console.log("browser" + browser)
+
+let latestversion;
+
+async function getLatestVersion() {
+
+  latestversion = "v0.1.1"
+
+  document.querySelector("#version").textContent = `Version ${latestversion} is the latest version!`
+
+}
+
+getLatestVersion()
+
+async function verifyZip(browser_download) {
+
+    const interval = setInterval(() => {
+        if (percent < 90) {
+            percent += 1;
+            updateProgress(percent);
+        }
+    }, 100);
+
+    let zipResponse, sigResponse, pubResponse
+
+    try {
+        [zipResponse, sigResponse, pubResponse] = await Promise.all([
+          fetch(`https://codedlunar.github.io/VoPro/releases/${latestversion}/VoPro-main-${browser_download}.zip`),
+            fetch(`https://codedlunar.github.io/VoPro/releases/${latestversion}/VoPro-main-${browser_download}.zip.sig`),
+            fetch("/keys/public.pem")
+        ]);
+    } catch (netError) {
+        clearInterval(interval);
+        console.log("no connection" + netError)
+        document.querySelector("#title").textContent = "Could not download update files. Check your internet connection.";
+        document.querySelector("#title").style.color = "orange";
+        return { status: 'HTTP_ERROR' } ;
+    }
+
+    zipResponse = await fetch(`https://codedlunar.github.io/VoPro/releases/${latestversion}/VoPro-main-${browser_download}.zip`);
+    sigResponse = await fetch(`https://codedlunar.github.io/VoPro/releases/${latestversion}/VoPro-main-${browser_download}.zip.sig`);
+    pubResponse = await fetch("/keys/public.pem");
+
+    clearInterval(interval);
+
+    updateProgress(100);
+
+    zipResponseClone = zipResponse.clone()
+
+    const zipBytes = await zipResponse.arrayBuffer();
+    const signature = await sigResponse.arrayBuffer();
+    const publicPem = await pubResponse.text();
+
+
+    // get the full public key
+
+    const base64 = publicPem
+        .replace("-----BEGIN PUBLIC KEY-----", "")
+        .replace("-----END PUBLIC KEY-----", "")
+        .replace(/\s/g, "");
+
+    const binary = atob(base64);
+    const publicKeyBytes = new Uint8Array(binary.length);
+
+    for (let i = 0; i < binary.length; i++) {
+        publicKeyBytes[i] = binary.charCodeAt(i);
+    }
+
+    // import the public key
+
+    const publicKey = await crypto.subtle.importKey(
+        "spki",
+        publicKeyBytes,
+        {
+            name: "Ed25519"
+        },
+        false,
+        ["verify"]
+    );
+
+    // get the hash of the current public key
+
+    const hash = await crypto.subtle.digest(
+        "SHA-256",
+        zipBytes
+    );
+
+    // is it actually signed by the coolest, one and only, codedlunar?????
+
+    const valid = await crypto.subtle.verify(
+        {
+            name: "Ed25519"
+        },
+        publicKey,
+        signature,
+        hash
+    );
+
+  if (!valid) {
+        // WHY YOU HACK MY SERVERS :(((
+
+        console.log("invalid")
+        return { status: "INVALID" }
+    }
+
+    console.log("valid")
+
+    return { status: "SUCCESS", blob: new Blob([zipBytes], { type: "application/zip" }) };
+}
+
+// Run verification
+
+async function runUpdateCheck() {
+
+    await wait(2000)
+
+    result = await verifyZip(currentbrowser);
+
+    const title = document.querySelector("#title");
+
+    switch (result.status) {
+        case "NETWORK_ERROR":
+        case "HTTP_ERROR":
+            title.textContent = "Could not download update files. Check your internet connection or if GitHub is down.";
+            title.style.color = "orange";
+            break;
+
+        case "INVALID":
+            title.textContent = "Signature of the zip is invalid, this file has been tampered with and is not official. Report this immediately.";
+            title.style.color = "red";
+            break;
+
+        case "SUCCESS":
+            title.textContent = "Signature of the zip is valid, this file has not been tampered with and is official.";
+            title.style.color = "lime";
+
+            setTimeout(() => {
+                const url = URL.createObjectURL(result.blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `VoPro-main-${currentbrowser}.zip`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+            }, 2000);
+            break;
+    }
+}
+
+document.querySelector("#w").addEventListener("click", () => {
+  alert('Safari/Webkit support is not out yet.')
+})
+
+let currentbrowser;
+
+if (window.location.hash.substring(1) != '') {
+    switch (window.location.hash.substring(1)) {
+        case 'c':
+            currentbrowser = 'chromium'
+            break;
+        case 'f':
+            currentbrowser = 'firefox'
+            break;
+        case 'w':
+            currentbrowser = 'webkit'
+            break;
+    }
+
+    document.querySelector("#detect").textContent = `Choosen install for ${currentbrowser} browser`
+    document.querySelector("#wrong").textContent = "Manually choose a browser version here:"
+    document.querySelector("#defaultbulletpoint").style.display = 'inline'
+
+
+    const defaultlink = document.createElement("a")
+    defaultlink.textContent = "Default"
+    defaultlink.onclick = `window.location.reload()`
+    defaultlink.href = "/releases.html"
+
+    document.querySelector("#links-container").append(defaultlink)
+} else {
+    currentbrowser = browser
+}
+
+
+document.querySelector("#n-1").addEventListener("click", runUpdateCheck)
+
+      </script>
+  </body>
+</html>
