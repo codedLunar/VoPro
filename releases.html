@@ -321,7 +321,7 @@ async function verifyZip(browser_download) {
         [zipResponse, sigResponse, pubResponse] = await Promise.all([
           fetch(`https://codedlunar.github.io/VoPro/releases/${latestversion}/VoPro-main-${browser_download}.zip`),
             fetch(`https://codedlunar.github.io/VoPro/releases/${latestversion}/VoPro-main-${browser_download}.zip.sig`),
-            fetch("/keys/public.pem")
+            fetch("https://codedlunar.github.io/VoPro/keys/public.pem")
         ]);
     } catch (netError) {
         clearInterval(interval);
