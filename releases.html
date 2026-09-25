@@ -333,7 +333,7 @@ async function verifyZip(browser_download) {
 
     zipResponse = await fetch(`https://codedlunar.github.io/VoPro/releases/${latestversion}/VoPro-main-${browser_download}.zip`);
     sigResponse = await fetch(`https://codedlunar.github.io/VoPro/releases/${latestversion}/VoPro-main-${browser_download}.zip.sig`);
-    pubResponse = await fetch("/keys/public.pem");
+    pubResponse = await fetch("https://codedlunar.github.io/VoPro/keys/public.pem");
 
     clearInterval(interval);
 
