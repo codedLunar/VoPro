@@ -1,7 +1,7 @@
 ![VoPro Logo](images/voprologo.png)
 
 # VoPro Browser Extension!
-Welcome to the VoPro Browser Extension Repository! VoPro is a browser extension that adds tons of features, stats, and themes to the vortex website (https://www.playvortex.io)!
+Welcome to the VoPro (formerly vortex+) Browser Extension Repository! VoPro is a browser extension that adds tons of features, stats, and themes to the vortex website (https://www.playvortex.io)!
 
 It is currently only majorly supported on firefox browsers, but you can try to use it on chrome/chromium if you would like!
 *Full chromium/chrome support will be coming in a future update ;)*
